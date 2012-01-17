@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -122,7 +123,7 @@ public class BEDecoderTest {
 		List<Object> objList = (List<Object>) obj;
 		Assert.assertTrue(objList.equals(jList));
 	}
-	
+
 	@Test
 	public void testListEmpty() throws IOException {
 		String list = "le";
@@ -142,21 +143,36 @@ public class BEDecoderTest {
 		InputStream in = new ByteArrayInputStream(bencodedMap.getBytes());
 		Object obj = BEDecoder.decode(in);
 		Assert.assertTrue(obj instanceof Map<?, ?>);
-		
+
 		Map<BinaryString, Object> map = new HashMap<BinaryString, Object>();
-		map.put(new BinaryString(new byte[] { 'a', 'b', 'c'}), BigInteger.valueOf(4));
-		
+		map.put(new BinaryString(new byte[] { 'a', 'b', 'c' }),
+				BigInteger.valueOf(4));
+
 		List<Object> list = new ArrayList<Object>();
 		list.add(BigInteger.valueOf(1));
 		list.add(BigInteger.valueOf(2));
 		list.add(BigInteger.valueOf(3));
-		list.add(new BinaryString(new byte[] { 'a', 'a', 'a'}));
-		map.put(new BinaryString(new byte[] { 'd', 'e', 'f'}), list);
-		
+		list.add(new BinaryString(new byte[] { 'a', 'a', 'a' }));
+		map.put(new BinaryString(new byte[] { 'd', 'e', 'f' }), list);
+
 		Map<BinaryString, Object> map2 = new HashMap<BinaryString, Object>();
-		map2.put(new BinaryString(new byte[] { 'a'}), BigInteger.valueOf(1));
-		map.put(new BinaryString(new byte[] { 'g', 'h', 'i'}), map2);
-		
+		map2.put(new BinaryString(new byte[] { 'a' }), BigInteger.valueOf(1));
+		map.put(new BinaryString(new byte[] { 'g', 'h', 'i' }), map2);
+
 		Assert.assertTrue(map.equals(obj));
+	}
+
+	@Test
+	public void testSHA1() throws IOException {
+		// { 'indo': { 'one': 1 }}
+		String bencodedMap = "d4:infod3:onei1eee";
+		InputStream in = new ByteArrayInputStream(bencodedMap.getBytes());
+		BEDecoder d = new BEDecoder(in, true);
+		byte[] expectedHash = new byte[] { 0x0c, 0x48, 0x2c, (byte) 0xc8, 0x0c,
+				0x53, 0x20, (byte) 0x8f, 0x59, 0x2b, (byte) 0xc7, 0x4c, 0x21,
+				0x21, (byte) 0xcc, (byte) 0xe3, (byte) 0xf6, 0x49, 0x43, 0x77 };
+		d.decode();
+		Assert.assertTrue(Arrays.equals(expectedHash, d.getInfoHash()
+				.getBytes()));
 	}
 }
