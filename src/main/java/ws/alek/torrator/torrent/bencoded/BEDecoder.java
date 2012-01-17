@@ -22,7 +22,7 @@ public class BEDecoder {
 
 	private boolean insideInfo = false;
 	private boolean calculateInfoHash = false;
-	private MessageDigest digest;
+	private MessageDigest digest = null;
 	private BinaryString infoHash = null;
 	private final static String INFO_KEY = "info";
 	private boolean isDecoded = false; // if false, then we didn't perform decoding yet.
@@ -150,6 +150,7 @@ public class BEDecoder {
 
 		Map<BinaryString, Object> map = new HashMap<BinaryString, Object>();
 		int ch;
+		boolean sha1Calculating = false;
 		while ((ch = readBack()) != 'e') {
 			if (ch == -1)
 				throw new EOFException();
@@ -157,27 +158,29 @@ public class BEDecoder {
 			BinaryString key = readBinaryString();
 
 			// Start calculate SHA1 digest if we found INFO entry.
-			if (calculateInfoHash && INFO_KEY.equals(key.toString())) {
+			if (calculateInfoHash && digest == null && INFO_KEY.equals(key.toString())) {
 				try {
 					digest = MessageDigest.getInstance("SHA1");
 					insideInfo = true;
+					sha1Calculating = true;
 				} catch (NoSuchAlgorithmException e) {
 					e.printStackTrace();
 				}
 			}
 
 			Object value = decode();
+			
+			// Save calculated INFO entry SHA1 checksum.
+			if (sha1Calculating) {
+				insideInfo = false;
+				infoHash = new BinaryString(digest.digest());
+				digest = null;
+				sha1Calculating = false;
+			}
+			
 			map.put(key, value);
 		}
 		read(); // Read last 'e' marker
-
-		// Save calculated INFO entry SHA1 checksum.
-		if (insideInfo) {
-			insideInfo = false;
-			infoHash = new BinaryString(digest.digest());
-			digest = null;
-		}
-
 		return map;
 	}
 
