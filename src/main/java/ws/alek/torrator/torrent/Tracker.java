@@ -14,7 +14,11 @@ public class Tracker {
 
 	public Tracker() {
 	}
-
+	
+	public Tracker(URL url) {
+		this.url = url;
+	}
+	
 	public void setUrl(URL url) {
 		this.url = url;
 	}
