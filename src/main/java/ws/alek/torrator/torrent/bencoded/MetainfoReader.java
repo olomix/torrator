@@ -1,5 +1,6 @@
 package ws.alek.torrator.torrent.bencoded;
 
+import java.io.File;
 import java.math.BigInteger;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -11,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ws.alek.torrator.torrent.TorrentFile;
 import ws.alek.torrator.torrent.Tracker;
 
 public class MetainfoReader {
@@ -140,6 +142,47 @@ public class MetainfoReader {
 	}
 
 	/**
+	 * Read list of files included in torrent.
+	 * 
+	 * @param metainfo
+	 *            Map representation of torrent file.
+	 * @return list of files.
+	 */
+	public static List<TorrentFile> readFiles(Map<BinaryString, Object> metainfo) {
+		List<TorrentFile> files = new ArrayList<TorrentFile>();
+		Map<BinaryString, Object> info = readMap(metainfo, "info");
+		String name = readBinaryString(info, "name").toString();
+		if (containsKey(info, "length")) {
+			// Single file torrent
+			int length = readBigInteger(info, "length").intValue();
+			TorrentFile torrentFile = new TorrentFile(name, length);
+			files.add(torrentFile);
+		} else if (containsKey(info, "files")) {
+			// Multi file torrent
+			List<Object> filesObj = readList(info, "files");
+			if (!(filesObj instanceof List<?>)) {
+				throw new IllegalArgumentException(
+						"'info->files' field is not a list.");
+			}
+			for (Object fileObj : filesObj) {
+				if (!(fileObj instanceof Map<?, ?>)) {
+					throw new IllegalArgumentException(
+							"'info->files->file' element is not a Map.");
+				}
+				@SuppressWarnings("unchecked")
+				Map<BinaryString, Object> fileMap = (Map<BinaryString, Object>) fileObj;
+				String path = readPath(readList(fileMap, "path"));
+				int length = readBigInteger(fileMap, "length").intValue();
+				files.add(new TorrentFile(name + File.separator + path, length));
+			}
+		} else {
+			throw new IllegalArgumentException(
+					"Can't read files from torrent metainfo.");
+		}
+		return files;
+	}
+
+	/**
 	 * Get Map object from metainfo data. Also performs check for type
 	 * correctness.
 	 * 
@@ -222,6 +265,40 @@ public class MetainfoReader {
 		}
 		return (BinaryString) stringObj;
 
+	}
+
+	private static boolean containsKey(Map<BinaryString, Object> metainfo,
+			String key) {
+		return metainfo.containsKey(new BinaryString(key.getBytes()));
+	}
+
+	/**
+	 * Build path for file from path elements in 'info->files->path' field
+	 * 
+	 * @param pathElements
+	 *            path elements
+	 * @return file path
+	 */
+	private static String readPath(List<Object> pathElements) {
+		File file = null;
+		for (Object pathElementObj : pathElements) {
+			if (!(pathElementObj instanceof BinaryString)) {
+				throw new IllegalArgumentException(
+						"Path element should be a BinaryString object.");
+			}
+			String pathElement = pathElementObj.toString();
+			if (".".equals(pathElement) || "..".equals(pathElement)) {
+				throw new IllegalArgumentException(
+						"Path contains invalid elements '.' or '..'.");
+			}
+
+			if (file == null) {
+				file = new File(pathElement);
+			} else {
+				file = new File(file, pathElement);
+			}
+		}
+		return file.getPath();
 	}
 
 }

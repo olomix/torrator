@@ -9,8 +9,6 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
-
 import ws.alek.torrator.torrent.bencoded.BEDecoder;
 import ws.alek.torrator.torrent.bencoded.BinaryString;
 import ws.alek.torrator.torrent.bencoded.MetainfoReader;
@@ -51,12 +49,11 @@ public class Torrent {
 		setPieceLength(MetainfoReader.readPieceLength(metainfo));
 		setPrivateTorrent(MetainfoReader.readPrivate(metainfo));
 		setTrackers(MetainfoReader.readTrackers(metainfo));
-		setFilesData(metainfo);
+		setFiles(MetainfoReader.readFiles(metainfo));
 	}
 
-	private void setFilesData(Map<BinaryString, Object> torrentMap) {
-		throw new NotImplementedException();
-		// TODO
+	private void setFiles(List<TorrentFile> files) {
+		this.files = files;
 	}
 
 	private void setPieces(byte[][] pieces) {

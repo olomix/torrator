@@ -27,6 +27,17 @@ public class Configuration {
 	}
 
 	/**
+	 * Create and return a directory to download files into.
+	 * 
+	 * @return directory with downloaded files.
+	 */
+	public static File getDownloadsDir() {
+		File downloadsDir = new File(getDataDir(), "downloads");
+		getDir(downloadsDir);
+		return downloadsDir;
+	}
+
+	/**
 	 * For a givven path create a directory if it don't exists and check that it
 	 * is actually a directory
 	 * 
