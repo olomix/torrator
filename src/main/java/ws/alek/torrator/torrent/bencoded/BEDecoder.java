@@ -13,6 +13,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import ws.alek.torrator.torrent.InfoHash;
+
 public class BEDecoder {
 	private final PushbackInputStream pis;
 	// Let the maximum allowable string size would be 10M
@@ -23,7 +25,7 @@ public class BEDecoder {
 	private boolean insideInfo = false;
 	private boolean calculateInfoHash = false;
 	private MessageDigest digest = null;
-	private BinaryString infoHash = null;
+	private InfoHash infoHash = null;
 	private final static String INFO_KEY = "info";
 	private boolean isDecoded = false; // if false, then we didn't perform decoding yet.
 
@@ -173,7 +175,7 @@ public class BEDecoder {
 			// Save calculated INFO entry SHA1 checksum.
 			if (sha1Calculating) {
 				insideInfo = false;
-				infoHash = new BinaryString(digest.digest());
+				infoHash = new InfoHash(digest.digest());
 				digest = null;
 				sha1Calculating = false;
 			}
@@ -218,7 +220,7 @@ public class BEDecoder {
 		return b;
 	}
 
-	public BinaryString getInfoHash() {
+	public InfoHash getInfoHash() {
 		if(!isDecoded) {
 			throw new IllegalStateException("Need to perform decoding before getting info_hash");
 		}

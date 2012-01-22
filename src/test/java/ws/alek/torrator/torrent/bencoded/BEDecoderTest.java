@@ -5,13 +5,14 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.junit.Assert;
 import org.junit.Test;
+
+import ws.alek.torrator.torrent.InfoHash;
 
 public class BEDecoderTest {
 	@Test
@@ -168,11 +169,11 @@ public class BEDecoderTest {
 		String bencodedMap = "d4:infod3:onei1eee";
 		InputStream in = new ByteArrayInputStream(bencodedMap.getBytes());
 		BEDecoder d = new BEDecoder(in, true);
-		byte[] expectedHash = new byte[] { 0x0c, 0x48, 0x2c, (byte) 0xc8, 0x0c,
-				0x53, 0x20, (byte) 0x8f, 0x59, 0x2b, (byte) 0xc7, 0x4c, 0x21,
-				0x21, (byte) 0xcc, (byte) 0xe3, (byte) 0xf6, 0x49, 0x43, 0x77 };
+		InfoHash expectedHash = new InfoHash(new byte[] { 0x0c, 0x48, 0x2c,
+				(byte) 0xc8, 0x0c, 0x53, 0x20, (byte) 0x8f, 0x59, 0x2b,
+				(byte) 0xc7, 0x4c, 0x21, 0x21, (byte) 0xcc, (byte) 0xe3,
+				(byte) 0xf6, 0x49, 0x43, 0x77 });
 		d.decode();
-		Assert.assertTrue(Arrays.equals(expectedHash, d.getInfoHash()
-				.getBytes()));
+		Assert.assertTrue(expectedHash.equals(d.getInfoHash()));
 	}
 }

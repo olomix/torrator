@@ -7,9 +7,9 @@ import java.io.IOException;
 import java.nio.channels.FileChannel;
 
 import ws.alek.torrator.cfg.Configuration;
+import ws.alek.torrator.dao.TorrentDAO;
 import ws.alek.torrator.services.TorrentService;
 import ws.alek.torrator.torrent.Torrent;
-import ws.alek.torrator.torrent.TorrentDAO;
 
 public class TorrentServiceImpl implements TorrentService {
 
@@ -31,7 +31,7 @@ public class TorrentServiceImpl implements TorrentService {
 		} catch (Exception e) {
 			return null;
 		}
-		
+
 		
 		return new Torrent();
 	}

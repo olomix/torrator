@@ -12,6 +12,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ws.alek.torrator.cfg.Configuration;
 import ws.alek.torrator.torrent.TorrentFile;
 import ws.alek.torrator.torrent.Tracker;
 
@@ -180,6 +181,44 @@ public class MetainfoReader {
 					"Can't read files from torrent metainfo.");
 		}
 		return files;
+	}
+
+	/**
+	 * Read 'info->name' field and return File object instance named by this
+	 * field located in <em>downloads<em> directory.
+	 * 
+	 * @param metainfo
+	 *            Map representation of torrent file.
+	 * @return Base directory to save files to or just file's name if this is a
+	 *         single-file torrent.
+	 */
+	public static File readName(Map<BinaryString, Object> metainfo) {
+		Map<BinaryString, Object> info = readMap(metainfo, "info");
+		String name = readBinaryString(info, "name").toString();
+		if (name.equals("..")) {
+			throw new SecurityException(
+					"Path name in torrent files should no contain '..' part.");
+		}
+		return new File(Configuration.getDownloadsDir(), name);
+	}
+
+	/**
+	 * Return true if torrent is single-file.
+	 * 
+	 * @param metainfo
+	 *            Map representation of torrent file.
+	 * @return true if torrent is single-file.
+	 */
+	public static boolean readSingleFile(Map<BinaryString, Object> metainfo) {
+		Map<BinaryString, Object> info = readMap(metainfo, "info");
+		if (containsKey(info, "length")) {
+			return true;
+		} else if (containsKey(info, "files")) {
+			return false;
+
+		}
+		throw new IllegalArgumentException(
+				"Can't read files from torrent metainfo.");
 	}
 
 	/**
