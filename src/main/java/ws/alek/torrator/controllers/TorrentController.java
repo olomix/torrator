@@ -5,7 +5,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class TorrentListController {
+public class TorrentController {
 	@RequestMapping("/")
 	public String list(Model model) {
 		return "TorrentList";

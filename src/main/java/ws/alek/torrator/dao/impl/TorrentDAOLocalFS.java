@@ -3,7 +3,6 @@ package ws.alek.torrator.dao.impl;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,8 +13,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import ws.alek.torrator.cfg.Configuration;
 import ws.alek.torrator.dao.TorrentDAO;
@@ -37,15 +34,6 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 				out.close();
 			}
 		}
-	}
-
-	@Override
-	public Torrent create(File torrentFile) throws IOException {
-		File savedTorrentFile = saveTorrentFile(torrentFile);
-		Torrent t = new Torrent(new FileInputStream(savedTorrentFile));
-		// File savedTorrentFile = saveTorrentFile(torrentFile);
-		// return Torrent.load(savedTorrentFile);
-		return t;
 	}
 
 	/**
@@ -70,7 +58,7 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 			}
 			torrents.add(t);
 		}
-		return (Torrent[]) torrents.toArray();
+		return torrents.toArray(new Torrent[0]);
 	}
 
 	/**
@@ -107,21 +95,24 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 	}
 
 	/**
-	 * Save the given file to permanent storage.
+	 * Save the given torrent file to permanent storage. The name of the file
+	 * would be <em>&lt;info_hash&gt;.torrent</em>
 	 * 
-	 * @param originalTorrentFile
+	 * @param torrentFile
 	 *            torrent file to save
+	 * @param torrent
+	 *            Torrent instance to get info_hash from
 	 * @throws IOException
 	 */
-	private File saveTorrentFile(File originalTorrentFile) throws IOException {
-		File savedTorrentFile = new File(Configuration.getTorrentsDir(),
-				originalTorrentFile.getName());
+	@Override
+	public void persistTorrentFile(File torrentFile, Torrent torrent) throws IOException {
+		String fileName = torrent.getInfoHash().toString() + ".torrent";
 		FileChannel inputChannel = null;
 		FileChannel outputChannel = null;
 		try {
-			inputChannel = new FileInputStream(originalTorrentFile)
-					.getChannel();
-			outputChannel = new FileOutputStream(savedTorrentFile).getChannel();
+			inputChannel = new FileInputStream(torrentFile).getChannel();
+			outputChannel = new FileOutputStream(new File(
+					Configuration.getTorrentsDir(), fileName)).getChannel();
 			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 		} finally {
 			if (inputChannel != null)
@@ -129,7 +120,6 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 			if (outputChannel != null)
 				outputChannel.close();
 		}
-		return savedTorrentFile;
 	}
 
 }

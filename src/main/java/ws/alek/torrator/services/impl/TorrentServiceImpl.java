@@ -2,18 +2,24 @@ package ws.alek.torrator.services.impl;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.nio.channels.FileChannel;
+import java.io.InputStream;
 
-import ws.alek.torrator.cfg.Configuration;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import ws.alek.torrator.dao.TorrentDAO;
+import ws.alek.torrator.services.TorrentManager;
 import ws.alek.torrator.services.TorrentService;
 import ws.alek.torrator.torrent.Torrent;
 
 public class TorrentServiceImpl implements TorrentService {
 
 	private TorrentDAO torrentDAO;
+	private TorrentManager torrentManager;
+
+	private static final Logger LOG = LoggerFactory
+			.getLogger(TorrentServiceImpl.class);
 
 	public TorrentDAO getTorrentDAO() {
 		return torrentDAO;
@@ -22,37 +28,48 @@ public class TorrentServiceImpl implements TorrentService {
 	public void setTorrentDAO(TorrentDAO torrentDAO) {
 		this.torrentDAO = torrentDAO;
 	}
-	
+
+	public TorrentManager getTorrentManager() {
+		return torrentManager;
+	}
+
+	public void setTorrentManager(TorrentManager torrentManager) {
+		this.torrentManager = torrentManager;
+	}
+
 	@Override
 	public Torrent add(File torrentFile) {
-		// Save torrent file locally
+		InputStream in = null;
+		Torrent torrent;
 		try {
-			File newTorrentFile = saveTorrentFile(torrentFile);
+			in = new FileInputStream(torrentFile);
+			torrent = new Torrent(in);
 		} catch (Exception e) {
+			LOG.error("Can't create Torrent: " + e.getMessage());
 			return null;
-		}
-
-		
-		return new Torrent();
-	}
-
-	private File saveTorrentFile(File torrentFile) throws IOException {
-		File file = new File(Configuration.getTorrentsDir(),
-				torrentFile.getName());
-		FileChannel inputChannel = null;
-		FileChannel outputChannel = null;
-		try {
-			inputChannel = new FileInputStream(torrentFile).getChannel();
-			outputChannel = new FileOutputStream(file).getChannel();
-			outputChannel.transferFrom(inputChannel, 0, inputChannel.size());
 		} finally {
-			if (inputChannel != null)
-				inputChannel.close();
-			if (outputChannel != null)
-				outputChannel.close();
+			if (in != null) {
+				try {
+					in.close();
+				} catch (IOException e) {
+					LOG.error("Can't close input stream: " + e.getMessage());
+				}
+			}
 		}
-		return file;
+
+		if (getTorrentManager().contains(torrent)) {
+			throw new IllegalArgumentException("We already have such Torrent.");
+		}
+		
+		// Save torrent file for backup needs
+		try {
+			getTorrentDAO().persistTorrentFile(torrentFile, torrent);
+		} catch (IOException e) {
+			LOG.error("Can't save torrent file for backup use: " + e.getMessage(), e);
+		}
+		
+		getTorrentManager().add(torrent);
+		
+		return torrent;
 	}
-
-
 }

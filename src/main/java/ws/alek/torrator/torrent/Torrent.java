@@ -16,8 +16,6 @@ import ws.alek.torrator.torrent.bencoded.MetainfoReader;
 
 public class Torrent implements Serializable {
 	private static final long serialVersionUID = 1L;
-	// TODO this stream is unset after restart. Do we need it at all?
-	transient private InputStream torrentFileStream;
 	private InfoHash infoHash = null;
 	transient private Peer[] peers;
 	private List<Tracker> trackers;
@@ -38,7 +36,6 @@ public class Torrent implements Serializable {
 	
 	@SuppressWarnings("unchecked")
 	public Torrent(InputStream in) {
-		setTorrentFile(in);
 		BEDecoder decoder = new BEDecoder(in, true);
 
 		Map<BinaryString, Object> metainfo;
@@ -57,10 +54,6 @@ public class Torrent implements Serializable {
 		setFiles(MetainfoReader.readFiles(metainfo));
 		setName(MetainfoReader.readName(metainfo));
 		setSingleFile(MetainfoReader.readSingleFile(metainfo));
-	}
-
-	public void setTorrentFile(InputStream in) {
-		torrentFileStream = in;
 	}
 
 	private void setFiles(List<TorrentFile> files) {

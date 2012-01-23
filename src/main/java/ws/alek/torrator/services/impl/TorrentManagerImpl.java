@@ -1,5 +1,6 @@
 package ws.alek.torrator.services.impl;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -31,7 +32,7 @@ public class TorrentManagerImpl implements TorrentManager {
 		}
 		return torrentDAO;
 	}
-
+	
 	public void init() {
 		// If torrents is not null, then we already initialized somehow.
 		if (torrents != null) {
@@ -58,6 +59,16 @@ public class TorrentManagerImpl implements TorrentManager {
 			}
 		}
 		torrents = null;
+	}
+	
+	public boolean contains(Torrent torrent) {
+		return torrents.containsKey(torrent.getInfoHash());
+	}
+
+	@Override
+	public void add(Torrent torrent) {
+		torrents.put(torrent.getInfoHash(), torrent);
+		// TODO may be start this torrent somehow.
 	}
 
 }
