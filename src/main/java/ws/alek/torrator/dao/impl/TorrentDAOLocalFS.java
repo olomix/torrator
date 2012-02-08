@@ -1,12 +1,15 @@
 package ws.alek.torrator.dao.impl;
 
+import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.io.OutputStream;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.List;
@@ -105,7 +108,8 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 	 * @throws IOException
 	 */
 	@Override
-	public void persistTorrentFile(File torrentFile, Torrent torrent) throws IOException {
+	public void persistTorrentFile(File torrentFile, Torrent torrent)
+			throws IOException {
 		String fileName = torrent.getInfoHash().toString() + ".torrent";
 		FileChannel inputChannel = null;
 		FileChannel outputChannel = null;
@@ -119,6 +123,35 @@ public class TorrentDAOLocalFS implements TorrentDAO {
 				inputChannel.close();
 			if (outputChannel != null)
 				outputChannel.close();
+		}
+	}
+
+	/**
+	 * Save torrent stream to permanent storage.
+	 * 
+	 * @param torrentIn
+	 *            stream of torrent to save.
+	 * @param torrent
+	 *            parsed torrent
+	 * @throws IOException
+	 */
+	@Override
+	public void persistTorrentFile(InputStream torrentIn, Torrent torrent)
+			throws IOException {
+		String fileName = torrent.getInfoHash().toString() + ".torrent";
+		OutputStream outputStream = null;
+		try {
+			outputStream = new BufferedOutputStream(new FileOutputStream(
+					fileName));
+			byte[] buf = new byte[8192];
+			int len;
+			while ((len = torrentIn.read(buf)) != -1) {
+				outputStream.write(buf, 0, len);
+			}
+		} finally {
+			if (outputStream != null) {
+				outputStream.close();
+			}
 		}
 	}
 

@@ -11,5 +11,10 @@
 		init-method="init" destroy-method="terminate">
 		<property name="torrentDAO" ref="torrentDAO" />
 	</bean>
+	
+	<bean name="torrentService" class="ws.alek.torrator.services.impl.TorrentServiceImpl">
+		<property name="torrentDAO" ref="torrentDAO" />
+		<property name="torrentManager" ref="torrentManager" />
+	</bean>
 
 </beans>

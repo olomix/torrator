@@ -1,6 +1,5 @@
 package ws.alek.torrator.services.impl;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
